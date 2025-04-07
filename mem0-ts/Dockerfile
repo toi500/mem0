@@ -25,8 +25,8 @@ RUN pnpm prune --prod
 # ---- Final Stage ----
 FROM node:20-alpine
 
-# Install pnpm (needed if the CMD uses pnpm)
-RUN npm install -g pnpm
+# Install pnpm (needed if the CMD uses pnpm, might be removable if CMD doesn't use pnpm)
+# RUN npm install -g pnpm
 
 WORKDIR /usr/src/app
 
@@ -34,13 +34,12 @@ WORKDIR /usr/src/app
 COPY --from=builder /usr/src/app/package.json /usr/src/app/pnpm-lock.yaml ./
 COPY --from=builder /usr/src/app/node_modules ./node_modules
 COPY --from=builder /usr/src/app/dist ./dist
-# Copy src if needed by the start script (e.g., ts-node examples)
-# Note: The path inside the builder container is still /usr/src/app/src
-COPY --from=builder /usr/src/app/src ./src
+# Copying src might no longer be necessary if running compiled code
+# COPY --from=builder /usr/src/app/src ./src
 
 # Expose a port if your application listens on one (adjust if necessary)
 # EXPOSE 3000
 
-# Define the command to run.
-# This uses the "example" script from package.json. Adjust if needed.
-CMD ["pnpm", "run", "example"]
+# Define the command to run the compiled JavaScript example.
+# Adjust the path if your build output is different.
+CMD ["node", "dist/oss/examples/vector-stores/index.js"]
