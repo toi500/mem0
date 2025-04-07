@@ -6,14 +6,14 @@ RUN npm install -g pnpm
 
 WORKDIR /usr/src/app
 
-# Copy package manifests
-COPY package.json pnpm-lock.yaml ./
+# Copy package manifests from the mem0-ts directory relative to the build context
+COPY mem0-ts/package.json mem0-ts/pnpm-lock.yaml ./
 
 # Install all dependencies (including devDependencies needed for build)
 RUN pnpm install --frozen-lockfile
 
-# Copy the rest of the source code
-COPY . .
+# Copy the rest of the source code from the mem0-ts directory relative to the build context
+COPY mem0-ts/. .
 
 # Run the build script defined in package.json
 RUN pnpm run build
@@ -34,14 +34,13 @@ WORKDIR /usr/src/app
 COPY --from=builder /usr/src/app/package.json /usr/src/app/pnpm-lock.yaml ./
 COPY --from=builder /usr/src/app/node_modules ./node_modules
 COPY --from=builder /usr/src/app/dist ./dist
-COPY --from=builder /usr/src/app/src ./src # Copy src if needed by the start script (e.g., ts-node examples)
+# Copy src if needed by the start script (e.g., ts-node examples)
+# Note: The path inside the builder container is still /usr/src/app/src
+COPY --from=builder /usr/src/app/src ./src
 
 # Expose a port if your application listens on one (adjust if necessary)
 # EXPOSE 3000
 
 # Define the command to run.
-# This uses the "start" script from package.json which runs an example.
-# Adjust this CMD if you need to run a different script or application entry point.
-# If this library isn't meant to run as a standalone service, you might remove the CMD
-# or change it to something like CMD ["node"] for an interactive prompt.
+# This uses the "example" script from package.json. Adjust if needed.
 CMD ["pnpm", "run", "example"]
